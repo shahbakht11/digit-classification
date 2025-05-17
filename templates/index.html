@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Handwritten Digit Recognition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Handwritten Digit Recognition</h1>
+        <p class="description">Upload an image of a handwritten digit (0-9) and get instant recognition!</p>
+        
+        <div class="upload-container">
+            <input type="file" id="imageInput" accept="image/*" class="file-input">
+            <label for="imageInput" class="file-label">
+                <span>Choose an image</span>
+            </label>
+        </div>
+
+        <div class="preview-container" id="previewContainer" style="display: none;">
+            <img id="imagePreview" src="" alt="Preview">
+            <button id="predictButton" class="predict-button">Predict Digit</button>
+        </div>
+
+        <div class="result-container" id="resultContainer" style="display: none;">
+            <h2>Prediction Result</h2>
+            <div class="result">
+                <span class="digit" id="predictedDigit"></span>
+                <span class="confidence" id="confidence"></span>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewContainer = document.getElementById('previewContainer');
+        const predictButton = document.getElementById('predictButton');
+        const resultContainer = document.getElementById('resultContainer');
+        const predictedDigit = document.getElementById('predictedDigit');
+        const confidence = document.getElementById('confidence');
+        const errorMessage = document.getElementById('errorMessage');
+
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                    resultContainer.style.display = 'none';
+                    errorMessage.style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        predictButton.addEventListener('click', async function() {
+            const file = imageInput.files[0];
+            if (!file) {
+                showError('Please select an image first');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    showResult(data);
+                }
+            } catch (error) {
+                showError('An error occurred while processing the image');
+            }
+        });
+
+        function showResult(data) {
+            predictedDigit.textContent = data.digit;
+            confidence.textContent = `Confidence: ${(data.confidence * 100).toFixed(2)}%`;
+            resultContainer.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            resultContainer.style.display = 'none';
+        }
+    </script>
+</body>
+</html> 

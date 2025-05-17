@@ -1,0 +1,17 @@
+# Virtual Environment
+venv/
+tf-env/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE
+.vscode/
+.idea/
+
+# Model file (optional - you might want to include this)
+# mnist_model.h5 
